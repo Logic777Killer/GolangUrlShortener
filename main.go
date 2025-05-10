@@ -27,6 +27,9 @@ func main() {
 		shortener.RedirectHandler(w, r, vars["shortURL"])
 	}).Methods("GET")
 
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
+		http.FileServer(http.Dir("static"))))
+
 	fmt.Println("Сервер запущен на http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

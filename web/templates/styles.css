@@ -8,7 +8,7 @@
 
 
 body {
-    background-image: url('kotic.png');
+    background-image: url('/static/kotic.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -22,12 +22,9 @@ body {
 }
 
 
-header {
-    margin-bottom: 150px;
+.title{
+    margin-bottom: 200px;
     text-align: center;
-}
-
-header h1 {
     font-size: 2.5rem;
     color: #4fc3f7;
     text-shadow: 4px 4px 4px rgba(0, 0, 0, 1);
