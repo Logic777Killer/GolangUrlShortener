@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>URL Shortener</title>
+    <style>
+        {{ template "css" . }}
+    </style>
+</head>
+<body>
+<h1>Сократить URL</h1>
+<form method="POST" action="/">
+    <input
+            type="text"
+            name="url"
+            placeholder="Введите URL"
+            value="{{.OriginalURL}}"
+            required
+    >
+    <button type="submit">Сократить</button>
+</form>
+
+{{if .Error}}
+<div class="error">{{.Error}}</div>
+{{else if .ShortURL}}
+<div class="result">
+    Сокращённая ссылка:
+    <a href="http://localhost:8080/{{.ShortURL}}">
+        http://localhost:8080/{{.ShortURL}}
+    </a>
+</div>
+{{end}}
+</body>
+</html>
