@@ -2,6 +2,7 @@ package web
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"path/filepath"
 
@@ -19,14 +20,13 @@ type Handlers struct {
 	tmpl      *template.Template
 }
 
-func NewHandlers(shortener *shortener.URLShortener) *Handlers {
+func NewHandlers(s *shortener.URLShortener) *Handlers {
 	tmpl := template.Must(template.ParseFiles(
 		filepath.Join("web", "templates", "base.html"),
 		filepath.Join("web", "templates", "styles.css"),
 	))
-
 	return &Handlers{
-		shortener: shortener,
+		shortener: s,
 		tmpl:      tmpl,
 	}
 }
@@ -36,23 +36,37 @@ func (h *Handlers) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) HandleShorten(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	url := r.Form.Get("url")
-	data := PageData{OriginalURL: url}
-
-	if url == "" {
-		data.Error = "URL не может быть пустым"
-		h.renderTemplate(w, data)
+	if err := r.ParseForm(); err != nil {
+		h.renderTemplate(w, PageData{Error: "Invalid form data"})
 		return
 	}
 
-	shortURL := h.shortener.GenerateShortURL(url)
-	data.ShortURL = shortURL
-	h.renderTemplate(w, data)
+	originalURL := r.Form.Get("url")
+	if originalURL == "" {
+		h.renderTemplate(w, PageData{Error: "URL cannot be empty"})
+		return
+	}
+
+	shortCode, err := h.shortener.GenerateShortURL(originalURL)
+	if err != nil {
+		log.Printf("Ошибка при создании короткой ссылки: %v", err) // Добавлено
+		h.renderTemplate(w, PageData{
+			OriginalURL: originalURL,
+			Error:       "Failed to create short URL",
+		})
+		return
+	}
+	
+	h.renderTemplate(w, PageData{
+		OriginalURL: originalURL,
+		ShortURL:    shortCode,
+	})
 }
 
 func (h *Handlers) renderTemplate(w http.ResponseWriter, data PageData) {
-	if err := h.tmpl.Execute(w, data); err != nil {
-		http.Error(w, "Template Error: "+err.Error(), http.StatusInternalServerError)
+	err := h.tmpl.Execute(w, data)
+	if err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Template rendering error", http.StatusInternalServerError)
 	}
 }
